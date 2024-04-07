@@ -193,7 +193,7 @@ init_var() {
     [[ -n "${code_branch}" ]] || code_branch="${repo_branch}"
 
     # Set compilation parameters
-    export ARCH="arm64"
+    export SRC_ARCH="arm64"
     export LOCALVERSION="${custom_name}"
 
     # Check release file
@@ -383,17 +383,17 @@ headers_install() {
     # Set headers files list
     head_list="$(mktemp)"
     (
-        find . arch/${ARCH} -maxdepth 1 -name Makefile\*
+        find . arch/${SRC_ARCH} -maxdepth 1 -name Makefile\*
         find include scripts -type f -o -type l
-        find arch/${ARCH} -name Kbuild.platforms -o -name Platform
-        find $(find arch/${ARCH} -name include -o -name scripts -type d) -type f
+        find arch/${SRC_ARCH} -name Kbuild.platforms -o -name Platform
+        find $(find arch/${SRC_ARCH} -name include -o -name scripts -type d) -type f
     ) >${head_list}
 
     # Set object files list
     obj_list="$(mktemp)"
     {
         [[ -n "$(grep "^CONFIG_OBJTOOL=y" include/config/auto.conf 2>/dev/null)" ]] && echo "tools/objtool/objtool"
-        find arch/${ARCH}/include Module.symvers include scripts -type f
+        find arch/${SRC_ARCH}/include Module.symvers include scripts -type f
         [[ -n "$(grep "^CONFIG_GCC_PLUGINS=y" include/config/auto.conf 2>/dev/null)" ]] && find scripts/gcc-plugins -name \*.so
     } >${obj_list}
 
@@ -424,14 +424,14 @@ compile_env() {
     echo -e "${STEPS} Set compilation parameters."
 
     # Show variable
-    echo -e "${INFO} ARCH: [ ${ARCH} ]"
+    echo -e "${INFO} ARCH: [ ${SRC_ARCH} ]"
     echo -e "${INFO} LOCALVERSION: [ ${LOCALVERSION} ]"
     echo -e "${INFO} CROSS_COMPILE: [ ${CROSS_COMPILE} ]"
     echo -e "${INFO} CC: [ ${CC} ]"
     echo -e "${INFO} LD: [ ${LD} ]"
 
     # Set generic make string
-    MAKE_SET_STRING=" ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} CC=${CC} LD=${LD} ${MFLAGS} LOCALVERSION=${LOCALVERSION} "
+    MAKE_SET_STRING=" ARCH=${SRC_ARCH} CROSS_COMPILE=${CROSS_COMPILE} CC=${CC} LD=${LD} ${MFLAGS} LOCALVERSION=${LOCALVERSION} "
 
     # Make clean/mrproper
     make ${MAKE_SET_STRING} mrproper
@@ -463,7 +463,7 @@ compile_env() {
 
     # Set max process
     PROCESS="$(cat /proc/cpuinfo | grep "processor" | wc -l)"
-    [[ -z "${PROCESS}" ]] && PROCESS="1" && echo "PROCESS: 1"
+    [[ -z "${PROCESS}" || "${PROCESS}" -lt "1" ]] && PROCESS="1" && echo "PROCESS: 1"
 }
 
 compile_dtbs() {
@@ -528,6 +528,7 @@ generate_uinitrd() {
     #echo -e "${INFO} Kernel copy results in the [ /usr/lib/modules ] directory: \n$(ls -l /usr/lib/modules) \n"
 
     # COMPRESS: [ gzip | lzma | xz | zstd ]
+    echo -e "${INFO} Set the [ ${compress_format} ] compression format for the initrd.img file."
     [[ "${kernel_outname}" =~ ^5.4.[0-9]+ ]] && compress_format="xz"
     compress_initrd_file="/etc/initramfs-tools/initramfs.conf"
     if [[ -f "${compress_initrd_file}" ]]; then
@@ -557,7 +558,7 @@ generate_uinitrd() {
         echo -e "${WARNING} The initrd.img and uInitrd file not updated."
     fi
 
-    echo -e "${INFO} File situation in the /boot directory after update: \n$(ls -l *${kernel_outname})"
+    echo -e "${INFO} File situation in the /boot directory after update: \n$(ls -hl *${kernel_outname})"
 
     # Restore the files in the [ /boot ] directory
     mv -f *${kernel_outname} ${output_path}/boot
@@ -718,7 +719,7 @@ toolchain_check
 echo -e "${INFO} Kernel compilation toolchain: [ ${toolchain_name} ]"
 echo -e "${INFO} Kernel from: [ ${code_owner} ]"
 echo -e "${INFO} Kernel patch: [ ${auto_patch} ]"
-echo -e "${INFO} Kernel arch: [ ${ARCH} ]"
+echo -e "${INFO} Kernel arch: [ ${SRC_ARCH} ]"
 echo -e "${INFO} Kernel Package: [ ${package_list} ]"
 echo -e "${INFO} kernel signature: [ ${custom_name} ]"
 echo -e "${INFO} Latest kernel version: [ ${auto_kernel} ]"
