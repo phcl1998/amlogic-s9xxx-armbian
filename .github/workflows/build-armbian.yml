@@ -214,7 +214,7 @@ on:
         options:
           - ophub
           - angel
-          - stable
+          - new
 
 env:
   TZ: America/New_York
