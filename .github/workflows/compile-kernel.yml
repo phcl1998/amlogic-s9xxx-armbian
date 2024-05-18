@@ -25,7 +25,7 @@ on:
         type: choice
         options:
           - 5.4.y
-          - 5.10.y
+          - 5.10.216
           - 5.15.y
           - 6.1.y
           - 6.6.y
@@ -42,7 +42,7 @@ on:
         default: "all"
         type: choice
         options:
-          - all
+          - 全部
           - dtbs
       kernel_toolchain:
         description: "Select the compilation toolchain"
@@ -68,7 +68,7 @@ on:
         default: "-ophub"
         type: choice
         options:
-          - -ophub
+          - -new
           - -stable
 
 env:
