@@ -68,7 +68,8 @@ on:
         default: "-ophub"
         type: choice
         options:
-          - -new
+          - -s
+          - -n
           - -stable
 
 env:
