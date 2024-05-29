@@ -214,7 +214,7 @@ on:
         default: "ophub"
         type: choice
         options:
-          - ophub
+          - s
           - angel
           - new
 
